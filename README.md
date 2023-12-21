@@ -2,6 +2,12 @@
 
 This project provides a collection of resources to enable the utilization of Private Generative AI in conjunction with Alfresco. Each service within the project is designed to operate locally, offering flexibility for usage in a development environment.
 
+The primary scenarios covered by this project are centered around a document:
+
+* Summarize a document in any language and recognize various tags
+* Select a term from a provided list that characterizes a document
+* Answer to a question related to the document
+
 
 ## Requirements
 
