@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.alfresco.org/model/dictionary/1.0" name="genai:GenerativeAI">
+    <imports>
+        <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+    </imports>
+    <namespaces>
+        <namespace uri="http://www.alfresco.org/model/genai/1.0" prefix="genai"/>
+    </namespaces>
+    <aspects>
+        <aspect name="genai:summarizable">
+            <title>Summarizable with AI</title>
+            <properties>
+                <property name="genai:summary">
+                    <title>Summary</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+                <property name="genai:tags">
+                    <title>Tags</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <multiple>true</multiple>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+                <property name="genai:llmSummary">
+                    <title>Model</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="genai:promptable">
+            <title>Promptable with AI</title>
+            <properties>
+                <property name="genai:question">
+                    <title>Question</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <default>Enter a question related to the document...</default>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+                <property name="genai:answer">
+                    <title>Answer</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+                <property name="genai:llmPrompt">
+                    <title>Model</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="genai:classifiable">
+            <title>Classifiable with AI</title>
+            <properties>
+                <property name="genai:terms">
+                    <title>Terms</title>
+                    <description>List of terms for classification. AI will choose only one for a given document.</description>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="genai:classified">
+            <title>Classified with AI</title>
+            <properties>
+                <property name="genai:term">
+                    <title>Term</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+                <property name="genai:llmClassify">
+                    <title>Model</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+            </properties>
+        </aspect>
+    </aspects>
+</model>

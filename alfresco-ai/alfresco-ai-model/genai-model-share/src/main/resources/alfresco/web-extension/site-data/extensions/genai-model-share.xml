@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension>
+  <modules>
+    <module>
+      <id>CMM_GenerativeAI</id>
+      <auto-deploy>true</auto-deploy>
+      <configurations>
+
+        <!-- Document Library config section -->
+        <config condition="DocumentLibrary" evaluator="string-compare" replace="false">
+          <aspects>
+            <visible>
+              <aspect label="Summarizable with AI" name="genai:summarizable"/>
+              <aspect label="Classified with AI" name="genai:classified"/>
+              <aspect label="Promptable with AI" name="genai:promptable"/>
+              <aspect label="Classifiable with AI" name="genai:classifiable"/>
+            </visible>
+          </aspects>
+        </config>
+
+        <!-- Form configuration section - aspect -->
+        <config condition="genai:summarizable" evaluator="aspect">
+          <forms>
+            <form>
+              <field-visibility>
+                <show for-mode="view" id="genai:summary"/>
+                <show for-mode="view" id="genai:tags"/>
+                <show for-mode="view" id="genai:llmSummary"/>
+              </field-visibility>
+              <appearance>
+                <set appearance="title" id="genai:summarizable_cmm_set0" label-id="Summary"/>
+                <field id="genai:llmSummary" read-only="true" set="genai:summarizable_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
+                </field>
+                <field id="genai:tags" read-only="true" set="genai:summarizable_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
+                </field>
+                <field id="genai:summary" read-only="true" set="genai:summarizable_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
+                </field>
+              </appearance>
+            </form>
+          </forms>
+        </config>
+        <config condition="genai:classified" evaluator="aspect">
+          <forms>
+            <form>
+              <field-visibility>
+                <show for-mode="view" id="genai:term"/>
+                <show for-mode="view" id="genai:llmClassify"/>
+              </field-visibility>
+              <appearance>
+                <set appearance="title" id="genai:classified_cmm_set0" label-id="Classification"/>
+                <field id="genai:term" read-only="true" set="genai:classified_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
+                </field>
+                <field id="genai:llmClassify" read-only="true" set="genai:classified_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
+                </field>
+              </appearance>
+            </form>
+          </forms>
+        </config>
+        <config condition="genai:promptable" evaluator="aspect">
+          <forms>
+            <form>
+              <field-visibility>
+                <show id="genai:question"/>
+                <show for-mode="view" id="genai:answer"/>
+                <show for-mode="view" id="genai:llmPrompt"/>
+              </field-visibility>
+              <appearance>
+                <set appearance="title" id="genai:promptable_cmm_set0" label-id="Chatting"/>
+                <field id="genai:question" set="genai:promptable_cmm_set0">
+                </field>
+                <field id="genai:llmPrompt" read-only="true" set="genai:promptable_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
+                </field>
+                <field id="genai:answer" read-only="true" set="genai:promptable_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
+                </field>
+              </appearance>
+            </form>
+          </forms>
+        </config>
+        <config condition="genai:classifiable" evaluator="aspect">
+          <forms>
+            <form>
+              <field-visibility>
+                <show id="genai:terms"/>
+              </field-visibility>
+              <appearance>
+                <set appearance="title" id="genai:classifiable_cmm_set0" label-id="Classifying"/>
+                <field id="genai:terms" set="genai:classifiable_cmm_set0">
+                </field>
+              </appearance>
+            </form>
+          </forms>
+        </config>
+
+      </configurations>
+    </module>
+  </modules>
+</extension>

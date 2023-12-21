@@ -1,0 +1,54 @@
+services:
+
+  llm:
+    image: ollama/ollama:latest
+    profiles: ["linux"]
+
+  pull-model:
+    image: genai-stack/pull-model:latest
+    build:
+      dockerfile: pull_model.Dockerfile
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL-http://host.docker.internal:11434}
+      - LLM=${LLM-llama2}
+
+  database:
+    image: neo4j:5.11
+    environment:
+      - NEO4J_AUTH=${NEO4J_USERNAME-neo4j}/${NEO4J_PASSWORD-password}
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_db_tx__log_rotation_retention__policy=false
+    healthcheck:
+        test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
+        interval: 5s
+        timeout: 3s
+        retries: 5
+    volumes:
+      - ./data:/data
+
+  genai:
+    build:
+      dockerfile: document.Dockerfile
+    environment:
+      - NEO4J_URI=${NEO4J_URI-neo4j://database:7687}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD-password}
+      - NEO4J_USERNAME=${NEO4J_USERNAME-neo4j}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL-http://host.docker.internal:11434}
+      - LLM=${LLM-llama2}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL-sentence_transformer}
+      - SUMMARY_LANGUAGE=${SUMMARY_LANGUAGE}
+      - SUMMARY_SIZE=${SUMMARY_SIZE}
+      - TAGS_NUMBER=${TAGS_NUMBER}
+    depends_on:
+      database:
+        condition: service_healthy
+      pull-model:
+        condition: service_completed_successfully
+    ports:
+      - 8506:8506
+    volumes:
+      - ./embedding_model:/embedding_model      
+
+networks:
+  default:
+    name: alfresco-genai

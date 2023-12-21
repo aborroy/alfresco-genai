@@ -1,0 +1,165 @@
+services:
+    alfresco:
+        build:
+          context: ./alfresco
+          args:
+            ALFRESCO_TAG: ${ALFRESCO_CE_TAG}
+            SOLR_COMMS: secret 
+        environment:
+            JAVA_TOOL_OPTIONS: >-
+                -Dencryption.keystore.type=JCEKS
+                -Dencryption.cipherAlgorithm=DESede/CBC/PKCS5Padding
+                -Dencryption.keyAlgorithm=DESede
+                -Dencryption.keystore.location=/usr/local/tomcat/shared/classes/alfresco/extension/keystore/keystore
+                -Dmetadata-keystore.password=mp6yc0UD9e
+                -Dmetadata-keystore.aliases=metadata
+                -Dmetadata-keystore.metadata.password=oKIWzVdEdA
+                -Dmetadata-keystore.metadata.algorithm=DESede
+            JAVA_OPTS : >-
+                -Ddb.username=alfresco
+                -Ddb.password=alfresco
+                -Ddb.driver=org.postgresql.Driver
+                -Ddb.url=jdbc:postgresql://postgres:5432/alfresco  
+                -Dalfresco_user_store.adminpassword=209c6174da490caeb422f3fa5a7ae634
+                -Dsystem.preferred.password.encoding=bcrypt10
+                -Dsolr.host=solr6
+                -Dsolr.port=8983
+                -Dsolr.port.ssl=8983
+                -Dsolr.secureComms=secret
+                -Dsolr.baseUrl=/solr
+                -Dindex.subsystem.name=solr6
+                -Dsolr.sharedSecret=tx1jetmwv  
+                -Dalfresco.host=${SERVER_NAME}
+                -Dalfresco.port=8080
+                -Dapi-explorer.url=http://${SERVER_NAME}:8080/api-explorer
+                -Dalfresco.protocol=http 
+                -Dshare.host=${SERVER_NAME}
+                -Dshare.port=8080
+                -Dshare.protocol=http 
+                -Daos.baseUrlOverwrite=http://${SERVER_NAME}/alfresco/aos 
+                -Dmessaging.broker.url="failover:(nio://activemq:61616)?timeout=3000&jms.useCompression=true"
+                -Drepo.event2.filter.nodeTypes="sys:*, fm:*, cm:failedThumbnail, cm:rating, rma:rmsite include_subtypes, usr:user"
+                -DlocalTransform.core-aio.url=http://transform-core-aio:8090/ 
+                -Dopencmis.server.override=true
+                -Dopencmis.server.value=http://${SERVER_NAME}:8080
+                -Dcsrf.filter.enabled=false 
+                -Dalfresco.restApi.basicAuthScheme=true
+                -Dauthentication.protection.enabled=false
+                -Dgoogledocs.enabled=false   
+                -Ddev.email.not.sent=true  
+                -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80
+        depends_on:
+            - postgres
+        volumes: 
+            - ./data/alf-repo-data:/usr/local/tomcat/alf_data
+            - ./logs/alfresco:/usr/local/tomcat/logs    
+        
+
+    transform-core-aio:
+        image: alfresco/alfresco-transform-core-aio:${TRANSFORM_ENGINE_TAG}
+        restart: on-failure  
+        environment:
+            JAVA_OPTS: >-
+              -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80
+              -Dserver.tomcat.threads.max=12
+              -Dserver.tomcat.threads.min=4
+              -Dlogging.level.org.alfresco.transform.common.TransformerDebug=ERROR
+              -Dlogging.level.org.alfresco.transform=ERROR
+              -Dlogging.level.org.apache.fontbox.ttf=ERROR
+              -Dlogging.level.org.apache.pdfbox.cos.COSDocument=ERROR
+              -Dlogging.level.org.apache.pdfbox.pdfparser=ERROR
+              -Dlogging.level.org.apache.pdfbox.filter.FlateFilter=ERROR
+              -Dlogging.level.org.apache.pdfbox.pdmodel.font=ERROR
+              -Dlogging.level.org.apache.pdfbox.pdmodel.font.PDSimpleFont=FATAL
+              -Dlogging.level.org.apache.pdfbox.pdmodel.font.PDFont=FATAL
+              -Dlogging.level.org.apache.pdfbox.pdmodel.font.PDCIDFont=FATAL
+
+    activemq:
+        image: alfresco/alfresco-activemq:${ACTIVEMQ_TAG}
+        ports:
+            - 61616:61616
+
+    postgres:
+        image: postgres:${POSTGRES_TAG}
+        environment:
+            - POSTGRES_PASSWORD=alfresco
+            - POSTGRES_USER=alfresco
+            - POSTGRES_DB=alfresco
+        command: >-
+            postgres
+              -c max_connections=200
+              -c logging_collector=on
+              -c log_min_messages=LOG
+              -c log_directory=/var/log/postgresql
+        volumes: 
+            - ./data/postgres-data:/var/lib/postgresql/data
+            - ./logs/postgres:/var/log/postgresql  
+
+    solr6:
+        build:
+          context: ./search
+          args:
+            SEARCH_TAG: ${SEARCH_CE_TAG}
+            SOLR_HOSTNAME: solr6
+            ALFRESCO_HOSTNAME: alfresco
+        environment:
+            SOLR_ALFRESCO_HOST: "alfresco"
+            SOLR_ALFRESCO_PORT:  "8080" 
+            SOLR_SOLR_HOST: "solr6"
+            SOLR_SOLR_PORT: "8983"
+            SOLR_CREATE_ALFRESCO_DEFAULTS: "alfresco" 
+            SOLR_OPTS: >-
+                -XX:-UseLargePages
+                -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80
+                -Dalfresco.secureComms.secret=tx1jetmwv 
+        volumes: 
+            - ./data/solr-data:/opt/alfresco-search-services/data   
+
+    share:
+        build:
+          context: ./share
+          args:
+            SHARE_TAG: ${SHARE_TAG}
+            SERVER_NAME: ${SERVER_NAME}
+        environment:
+            REPO_HOST: "alfresco"
+            REPO_PORT: "8080"
+            CSRF_FILTER_REFERER: "http://localhost:8080/.*"
+            CSRF_FILTER_ORIGIN: "http://localhost:8080"
+            JAVA_OPTS: >-
+                -Dalfresco.context=alfresco
+                -Dalfresco.protocol=http
+                -XX:MinRAMPercentage=50 -XX:MaxRAMPercentage=80
+        volumes: 
+            - ./logs/share:/usr/local/tomcat/logs
+
+    content-app:
+        image: alfresco/alfresco-content-app:${ACA_TAG}
+        environment:
+            APP_BASE_SHARE_URL: "http://${SERVER_NAME}:<%=port%>/#/preview/s"
+        depends_on:
+            - alfresco
+
+#    alfresco-ai-listener:
+#        image: alfresco-ai-listener
+#        environment:
+#            CONTENT_SERVICE_URL: "http://alfresco:8080"
+#            SPRING_ACTIVEMQ_BROKERURL: "tcp://activemq:61616"
+#            GENAI_URL: "http://genai:8506"
+#        depends_on:
+#            - alfresco        
+    
+    proxy:
+        image: nginx:stable-alpine
+        mem_limit: 128m
+        depends_on:
+            - alfresco
+            - share
+        volumes:
+            - ./config/nginx.conf:/etc/nginx/nginx.conf
+        ports:
+            - 8080:8080
+
+networks:
+  default:
+    name: alfresco-genai
