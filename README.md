@@ -107,11 +107,22 @@ curl --location 'http://localhost:8506/classify?termList="Japanese,Spanish,Korea
 * Responding to questions related to the document
 
 ```bash
-curl --location 'http://localhost:8506/prompt?prompt="What is this text about?"' --form 'file=./file.pdf"'
+curl --location 'http://localhost:8506/prompt?prompt="What is the name of the son?"' --form 'file=./file.pdf"'
 
 {
-    "answer": " Yes, it is difficult to find childcare in Tokyo.",
+    "answer": "The name of the son is Musuko.",
     "model": "mistral"
+}
+```
+
+* Describing a picture
+
+```bash
+curl --location 'http://localhost:8506/describe' --form 'image=@"file.jpg"'
+
+{
+    "description": " In the image, a man with a beard is standing in an indoor setting.",
+    "model": "llava"
 }
 ```
 
@@ -122,6 +133,7 @@ Modify `.env` file values:
 ```
 # Choose any of the on premise models supported by ollama
 LLM=mistral
+LLM_VISION=llava
 
  # Any language name supported by chosen LLM
 SUMMARY_LANGUAGE=English
