@@ -12,6 +12,14 @@ services:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL-http://host.docker.internal:11434}
       - LLM=${LLM-llama2}
 
+  pull-vision-model:
+    image: genai-stack/pull-model:latest
+    build:
+      dockerfile: pull_model.Dockerfile
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL-http://host.docker.internal:11434}
+      - LLM=${LLM_VISION-llava}      
+
   database:
     image: neo4j:5.11
     environment:
@@ -35,6 +43,7 @@ services:
       - NEO4J_USERNAME=${NEO4J_USERNAME-neo4j}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL-http://host.docker.internal:11434}
       - LLM=${LLM-llama2}
+      - LLM_VISION=${LLM_VISION-llava} 
       - EMBEDDING_MODEL=${EMBEDDING_MODEL-sentence_transformer}
       - SUMMARY_LANGUAGE=${SUMMARY_LANGUAGE}
       - SUMMARY_SIZE=${SUMMARY_SIZE}
@@ -43,6 +52,8 @@ services:
       database:
         condition: service_healthy
       pull-model:
+        condition: service_completed_successfully
+      pull-vision-model:
         condition: service_completed_successfully
     ports:
       - 8506:8506

@@ -14,3 +14,4 @@ uvicorn
 sse-starlette
 boto3
 python-multipart
+pycurl

@@ -1,4 +1,9 @@
 import os
+import base64
+import pycurl
+import json
+from io import BytesIO
+from urllib.parse import urlencode
 
 import streamlit as st
 from langchain.chains import RetrievalQA
@@ -24,6 +29,7 @@ password = os.getenv("NEO4J_PASSWORD")
 ollama_base_url = os.getenv("OLLAMA_BASE_URL")
 embedding_model_name = os.getenv("EMBEDDING_MODEL")
 llm_name = os.getenv("LLM")
+llm_vision_name = os.getenv("LLM_VISION")
 os.environ["NEO4J_URL"] = url
 
 language = os.getenv("SUMMARY_LANGUAGE")
@@ -86,6 +92,32 @@ def getQa(file: UploadFile):
         llm=llm, chain_type="stuff", retriever=vector_store.as_retriever()
     )
     return qa
+
+@app.post("/describe")
+async def describe(image: UploadFile):
+
+    contents = await image.read()
+    img_base64 = base64.b64encode(contents).decode("utf-8")
+
+    prompt = """You are an assistant tasked with summarizing images for retrieval. \
+    These summaries will be embedded and used to retrieve the raw image. \
+    Give a concise summary of the image that is well optimized for retrieval."""
+
+    buffer = BytesIO()
+    curl = pycurl.Curl()
+    curl.setopt(pycurl.URL, ollama_base_url + "/api/generate")
+    curl.setopt(pycurl.WRITEDATA, buffer)
+    post_data = {"model": "" + llm_vision_name + "", 
+                 "prompt": "" + prompt + "",
+                 "stream": False,
+                 "images": ["" + img_base64 + ""]}
+    postfields = json.dumps(post_data)
+    curl.setopt(pycurl.POST, True)
+    curl.setopt(pycurl.POSTFIELDS, postfields)
+    curl.perform()
+    curl.close()
+    response = json.loads(buffer.getvalue().decode("utf-8"))
+    return { "description": response["response"], "model": llm_vision_name }
 
 @app.post("/classify")
 async def classify(file: UploadFile, termList: str):
