@@ -23,6 +23,12 @@ public class AiApplierActionFactory {
     AiApplierClassify aiApplierClassify;
 
     /**
+     * Action that creates summaries for Alfresco documents.
+     */
+    @Autowired
+    AiApplierDescription aiApplierDescription;
+
+    /**
      * Returns the appropriate {@link AiApplierAction} instance based on the specified action.
      *
      * @param action The type of AI action to be performed.
@@ -33,6 +39,7 @@ public class AiApplierActionFactory {
         return switch (action) {
             case SUMMARY -> aiApplierSummary;
             case CLASSIFY -> aiApplierClassify;
+            case DESCRIBE -> aiApplierDescription;
             default -> throw new RuntimeException("Action " + action + " is not supported!");
         };
     }

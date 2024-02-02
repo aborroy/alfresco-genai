@@ -111,5 +111,28 @@
                 </property>
             </properties>
         </aspect>
+        <aspect name="genai:descriptable">
+            <title>Descriptable with AI</title>
+            <properties>
+                <property name="genai:description">
+                    <title>Description</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+                <property name="genai:llmDescription">
+                    <title>Model</title>
+                    <type>d:text</type>
+                    <mandatory>false</mandatory>
+                    <index enabled="true">
+                        <tokenised>true</tokenised>
+                        <facetable>false</facetable>
+                    </index>
+                </property>
+            </properties>
+        </aspect>
     </aspects>
 </model>

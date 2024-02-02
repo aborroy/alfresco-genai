@@ -24,9 +24,16 @@ Not supported by Ollama, so Windows users need to generate a OpenAI API key and 
 Modify environment variables in `.env` file to specify your preferences.
 
 ```
-SUMMARY_LANGUAGE=Brazilian # Any language name supported by LLM
-SUMMARY_SIZE=120 # Number of words for the summary
-TAGS_NUMBER=3 # Number of tags to be identified for classification
+# Choose any of the on premise models supported by ollama
+LLM=mistral
+LLM_VISION=llava
+
+ # Any language name supported by chosen LLM
+SUMMARY_LANGUAGE=English
+# Number of words for the summary
+SUMMARY_SIZE=120
+# Number of tags to be identified with the summary
+TAGS_NUMBER=3 
 ```
 
 # Develop

@@ -3,6 +3,7 @@ package org.alfresco.genai.service;
 import jakarta.annotation.PostConstruct;
 import okhttp3.*;
 import org.alfresco.genai.model.Answer;
+import org.alfresco.genai.model.Description;
 import org.alfresco.genai.model.Summary;
 import org.alfresco.genai.model.Term;
 import org.springframework.beans.factory.annotation.Value;
@@ -155,6 +156,40 @@ public class GenAiClient {
         Map<String, Object> aiResponse = JSON_PARSER.parseMap(response);
         return new Term()
                 .term(aiResponse.get("term").toString().trim())
+                .model(aiResponse.get("model").toString());
+
+    }
+
+    /**
+     * Describes a picture using the GenAI service for the provided picture file.
+     *
+     * @param pictureFile   The picture file containing the image related to the question.
+     * @return An {@link Description} object containing the description and the model information.
+     * @throws IOException If an I/O error occurs during the HTTP request or response processing.
+     */
+    public Description getDescription(File pictureFile) throws IOException {
+
+        RequestBody requestBody = new MultipartBody
+                .Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("image", pictureFile.getName(), RequestBody.create(pictureFile, MediaType.parse("Binary data")))
+                .build();
+
+        HttpUrl httpUrl = HttpUrl.parse(genaiUrl + "/describe")
+                .newBuilder()
+                .build();
+
+        Request request = new Request
+                .Builder()
+                .url(httpUrl)
+                .post(requestBody)
+                .build();
+
+        String response = client.newCall(request).execute().body().string();
+
+        Map<String, Object> aiResponse = JSON_PARSER.parseMap(response);
+        return new Description()
+                .description(aiResponse.get("description").toString().trim())
                 .model(aiResponse.get("model").toString());
 
     }

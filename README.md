@@ -8,6 +8,10 @@ The primary scenarios covered by this project are centered around a document:
 * Select a term from a provided list that characterizes a document
 * Answer to a question related to the document
 
+In addition, it includes a use case related to images:
+
+* Provide a description of a picture
+
 
 ## Requirements
 
@@ -48,7 +52,7 @@ The project includes following components:
 │           │                           │ http://alfresco:8080                 │ http://genai:8506/summary   │
 │           │            ┌─App──────────┴─────────────┐                        │ http://genai:8506/classify  │
 │           │            │                            │                        │ http://genai:8506/prompt    │
-│           │            │   alfresco-ai-applier      ├────────────────────────┤                             │
+│           │            │   alfresco-ai-applier      ├────────────────────────┤ http://genai:8506/describe  │
 │           │            │                            │                        │                             │
 │           │            └──────────────┬─────────────┘                        │                             │
 │           │                           │                                      │                             │
@@ -143,6 +147,7 @@ SUMMARY_SIZE=120
 TAGS_NUMBER=3 
 ```
 
+>> Note that LLM_VISION must be a LLM with vision encoder
 
 ## Alfresco
 
@@ -167,6 +172,7 @@ Alfresco service, available in [alfresco](alfresco) folder, includes custom cont
   * `genai:promptable` aspect is used to store the `question` provided by the user and the `answer` generated with AI
   * `genai:classifiable` aspect is used to store the list of terms available for the AI to classify a document. It should be applied to a folder
   * `genai:classified` aspect is used to store the term selected by the AI. It should be applied to a document
+  * `genai:descriptable` aspect is used to store the description generated with AI. It should be applied to a picture
 
 * Forms and configuration to handle custom Content Model from Share are available in [genai-model-share](alfresco-ai/alfresco-ai-model/genai-model-share)
 
@@ -183,6 +189,7 @@ This Spring Boot application utilizes the Alfresco REST API to fetch all documen
 
 * The `Summarizing` action involves retrieving documents from a folder using the Alfresco Search API, checking for the availability of PDF renditions, and updating document nodes with summaries obtained from the GenAi service.
 * The `Classifying` action retrieves documents from a folder using the Alfresco Search API, checks for the availability of PDF renditions, and updates document nodes by selecting a term, from a list of terms using the GenAi service.
+* The `Describing` actions retrieves pictures from a folder using the Alfresco Search API and updates image nodes with descriptions obtained from the GenAi service.
 
 ```
  ┌─Compose────────────────────┐          ┌─Compose────────────────────┐          
@@ -197,7 +204,7 @@ This Spring Boot application utilizes the Alfresco REST API to fetch all documen
                 │                                      │                         
                 │ http://alfresco:8080                 │ http://genai:8506/summary
  ┌─App──────────┴─────────────┐                        │ http://genai:8506/classify
- │                            │                        │ 
+ │                            │                        │ http://genai:8506/describe
  │   alfresco-ai-applier      ├────────────────────────┘
  │                            │                        
  └────────────────────────────┘                        
@@ -245,6 +252,14 @@ content.service.classify.term.property=genai:term
 # Node property to fill with the model
 content.service.classify.model.property=genai:llmClassify
 
+# Alfresco Repository Content Model (Description)
+# Aspect that triggers the description task
+content.service.description.aspect=genai:descriptable
+# Node property to store the description obtained from GenAI Stack
+content.service.description.description.property=genai:description
+# Node property to store the Large Language Model (LLM) used; use TAG as a value to use a tag instead of a property
+content.service.description.model.property=genai:llmDescription
+
 # GenAI Client Configuration
 # Host URL for the Document GenAI service
 genai.url=http://localhost:8506
@@ -254,7 +269,7 @@ genai.request.timeout=1200
 # Alfresco AI Applier Configuration
 # Root folder in Alfresco Repository to apply GenAI action
 applier.root.folder=/app:company_home/app:shared
-# Choose one action: SUMMARY, CLASSIFY
+# Choose one action: SUMMARY, CLASSIFY, DESCRIBE
 applier.action=SUMMARY
 # List of terms to be applied for CLASSIFY action (ignored when using SUMMARY action)
 applier.action.classify.term.list=English,Spanish,Japanese,Vietnamese
@@ -262,7 +277,14 @@ applier.action.classify.term.list=English,Spanish,Japanese,Vietnamese
 request.max.items=20
 ```
 
->> Configuration parameters can be also used as command line arguments or Docker environment variables.
+Configuration parameters can be also used as command line arguments or Docker environment variables, like in the following sample:
+
+```bash
+$ java -jar target/alfresco-ai-applier-0.8.0.jar \
+--applier.root.folder=/app:company_home/app:shared/cm:picture \
+--applier.action=DESCRIBE \
+--logging.level.org.alfresco=DEBUG
+```
 
 
 ## Alfresco AI Listener
@@ -283,7 +305,7 @@ This Spring Boot application is designed to capture summary, classification, or 
  │                           │ http://alfresco:8080                 │ http://genai:8506/summary
  │            ┌─Service──────┴─────────────┐                        │ http://genai:8506/classify
  │            │                            │                        │ http://genai:8506/prompt
- └────────────►   alfresco-ai-listener     ├────────────────────────┘                         
+ └────────────►   alfresco-ai-listener     ├────────────────────────┘ http://genai:8506/describe                        
               │                            │                                                  
               └────────────────────────────┘                                                  
 ```
@@ -293,6 +315,12 @@ This Spring Boot application is designed to capture summary, classification, or 
 Modify property values in `application.properties` file or use Docker environment setings:
 
 ```
+# Spring Boot properties
+spring.main.banner-mode=off
+logging.level.org.springframework=ERROR
+logging.level.org.alfresco=INFO
+logging.pattern.console=%msg%n
+
 # Alfresco Server Configuration
 # Basic authentication credentials for Alfresco Server
 content.service.security.basicAuth.username=admin
@@ -332,6 +360,14 @@ content.service.classify.term.property=genai:term
 # Node property to fill with the model
 content.service.classify.model.property=genai:llmClassify
 
+# Alfresco Repository Content Model (Description)
+# Aspect that triggers the description task
+content.service.description.aspect=genai:descriptable
+# Node property to store the description obtained from GenAI Stack
+content.service.description.description.property=genai:description
+# Node property to store the Large Language Model (LLM) used; use TAG as a value to use a tag instead of a property
+content.service.description.model.property=genai:llmDescription
+
 
 # ActiveMQ Server
 spring.activemq.brokerUrl=tcp://localhost:61616
@@ -346,7 +382,11 @@ genai.url=http://localhost:8506
 genai.request.timeout=1200
 ```
 
->> Configuration parameters can be also used as command line arguments or Docker environment variables.
+Configuration parameters can be also used as command line arguments or Docker environment variables, like in the following sample:
+
+```bash
+$ java -jar target/alfresco-ai-listener-0.8.0.jar --logging.level.org.alfresco=DEBUG
+```
 
 
 # Use Case 1: Existing Content
@@ -372,8 +412,6 @@ $ docker compose up
 3. Upload a number of documents to a given folder, for instance `/app:company_home/app:shared`
 
 4. (OPTIONAL) Compile the Alfresco AI Applier (if required)
-
-Compile the Alfresco AI Applier app if required
 
 ```sh
 $ cd alfresco-ai/alfresco-ai-applier
@@ -403,6 +441,19 @@ $ java -jar target/alfresco-ai-applier-0.8.0.jar \
 
 >> Once this command has finished, every document in the folder should include a populated `Term` property selected from the Term List (accessible in "view" mode)
 
+7. Upload a number of pictures to a given folder, for instance `/app:company_home/app:shared/cm:pictures`
+
+8. Run the Alfresco AI Applier to summarize the documents
+
+```sh
+$ cd alfresco-ai/alfresco-ai-applier
+$ java -jar target/alfresco-ai-applier-0.8.0.jar \
+  --applier.root.folder=/app:company_home/app:shared/cm:pictures \
+  --applier.action=DESCRIBE
+```
+
+>> Once this command has finished, every picture in the folder should include a populated `Description` property (accessible in "view" mode)
+
 
 # Use Case 2: New Content
 
@@ -415,7 +466,7 @@ $ cd genai-stack
 $ docker compose up
 ```
 
-2. (Optional) Build `alfresco-ai-listener` Docker Image if required
+2. (OPTIONAL) Build `alfresco-ai-listener` Docker Image if required
 
 ```sh
 $ cd alfresco-ai/alfresco-ai-listener
@@ -450,3 +501,8 @@ $ docker compose up
 * Apply Promptable with AI (`genai:promptable`) aspect to a document
 * Type your question in the property Question
 * Wait until GenAI populates `Answer` property (accesible in "view" mode)
+
+7. Describe a picture
+
+* Apply Descriptable with AI (`genai:descriptable`) aspect to a picture
+* Wait until GenAI populaes `Description` property (accesible in "view" mode)

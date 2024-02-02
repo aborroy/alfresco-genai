@@ -2,18 +2,17 @@ package org.alfresco.genai.service;
 
 import org.alfresco.core.handler.NodesApi;
 import org.alfresco.core.handler.TagsApi;
-import org.alfresco.core.model.NodeAssociationEntry;
 import org.alfresco.core.model.NodeBodyUpdate;
 import org.alfresco.core.model.TagBody;
 import org.alfresco.genai.model.Answer;
 import org.alfresco.genai.model.Summary;
 import org.alfresco.genai.model.Term;
+import org.alfresco.genai.model.Description;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +77,24 @@ public class NodeUpdateService {
      */
     @Value("${content.service.classify.model.property}")
     private String termModelProperty;
+
+    /**
+     * Aspect name associated with picture description.
+     */
+    @Value("${content.service.description.aspect}")
+    private String descriptionAspect;
+
+    /**
+     * The property name for storing the description content in the Alfresco repository obtained from configuration.
+     */
+    @Value("${content.service.description.description.property}")
+    private String descriptionProperty;
+
+    /**
+     * The property name for storing the answer model information in the Alfresco repository obtained from configuration.
+     */
+    @Value("${content.service.description.model.property}")
+    private String descriptionModelProperty;
 
     /**
      * Autowired instance of {@link NodesApi} for communication with the Alfresco Nodes API.
@@ -176,5 +193,30 @@ public class NodeUpdateService {
                 .getEntry().getProperties();
         return properties.get(termsProperty).toString().replace("[", "").replace("]", "");
     }
+
+    /**
+     * Updates the node properties with description and model information for the document identified by its UUID based
+     * on the provided {@link Description} object.
+     *
+     * @param uuid         The unique identifier of the picture node.
+     * @param description  The {@link Description} object containing the answer content and model information.
+     */
+    public void updateNodeDescription(String uuid, Description description) {
+
+        List<String> aspectNames =
+                nodesApi.getNode(uuid, null, null, null).getBody().getEntry().getAspectNames();
+        if (!aspectNames.contains(descriptionAspect)) {
+            aspectNames.add(descriptionAspect);
+        }
+
+        nodesApi.updateNode(uuid,
+                new NodeBodyUpdate()
+                        .properties(Map.of(
+                                descriptionProperty, description.getDescription(),
+                                descriptionModelProperty, description.getModel()))
+                        .aspectNames(aspectNames),
+                null, null);
+    }
+
 }
 

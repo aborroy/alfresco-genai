@@ -14,6 +14,7 @@
               <aspect label="Classified with AI" name="genai:classified"/>
               <aspect label="Promptable with AI" name="genai:promptable"/>
               <aspect label="Classifiable with AI" name="genai:classifiable"/>
+              <aspect label="Descriptable with AI" name="genai:descriptable"/>
             </visible>
           </aspects>
         </config>
@@ -99,6 +100,27 @@
               <appearance>
                 <set appearance="title" id="genai:classifiable_cmm_set0" label-id="Classifying"/>
                 <field id="genai:terms" set="genai:classifiable_cmm_set0">
+                </field>
+              </appearance>
+            </form>
+          </forms>
+        </config>
+        <config condition="genai:descriptable" evaluator="aspect">
+          <forms>
+            <form>
+              <field-visibility>
+                <show for-mode="view" id="genai:description"/>
+                <show for-mode="view" id="genai:llmDescription"/>
+              </field-visibility>
+              <appearance>
+                <set appearance="title" id="genai:descriptable_cmm_set0" label-id="Description"/>
+                <field id="genai:llmDescription" read-only="true" set="genai:descriptable_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
+                </field>
+                <field id="genai:description" read-only="true" set="genai:descriptable_cmm_set0">
+                  <control template="/org/alfresco/components/form/controls/textfield.ftl">
+                  </control>
                 </field>
               </appearance>
             </form>

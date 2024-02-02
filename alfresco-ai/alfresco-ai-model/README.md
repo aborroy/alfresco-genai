@@ -14,7 +14,7 @@ Following tools can be used to build and deploy these projects:
 
 This folder includes following projects:
 
-* [genai-model-repo](genai-model-repo) defines a custom Alfresco content model to store summaries, terms and prompts to be deployed in Alfresco Repository
+* [genai-model-repo](genai-model-repo) defines a custom Alfresco content model to store summaries, descriptions, terms and prompts to be deployed in Alfresco Repository
 * [genai-model-share](genai-model-share) defines forms and configuration fot the custom Alfresco content model
 
 ```
