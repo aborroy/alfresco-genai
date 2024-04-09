@@ -1,0 +1,4 @@
+include:
+  - genai-stack/compose.yaml
+  - alfresco/compose.yaml
+#  - alfresco/compose-ai.yaml

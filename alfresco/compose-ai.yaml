@@ -1,0 +1,9 @@
+services:
+    alfresco-ai-listener:
+        image: alfresco-ai-listener
+        environment:
+            CONTENT_SERVICE_URL: "http://alfresco:8080"
+            SPRING_ACTIVEMQ_BROKERURL: "tcp://activemq:61616"
+            GENAI_URL: "http://genai:8506"
+        depends_on:
+            - alfresco

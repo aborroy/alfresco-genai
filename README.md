@@ -35,6 +35,7 @@ The project includes following components:
   * [alfresco-ai-model](alfresco-ai/alfresco-ai-model) defines a custom Alfresco content model to store summaries, terms and prompts to be deployed in Alfresco Repository and Share App
   * [alfresco-ai-applier](alfresco-ai/alfresco-ai-applier) uses the Alfresco REST API to apply summaries or terms for a populated Alfresco Repository based on the application of the `genai:summarizable` aspect
   * [alfresco-ai-listener](alfresco-ai/alfresco-ai-listener) listens to messages and generates summaries, apply terms and reply answers for create or updated nodes in Alfresco Repository
+* [compose.yaml](compose.yaml) file describes a deployment for Alfresco and GenAI Stack services using `include` directive
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -388,40 +389,49 @@ Configuration parameters can be also used as command line arguments or Docker en
 $ java -jar target/alfresco-ai-listener-0.8.0.jar --logging.level.org.alfresco=DEBUG
 ```
 
-
 # Use Case 1: Existing Content
 
-1. Start GenAI Stack
-
->> Verify Docker and ollama are up & running
+0. Before proceeding, ensure that Docker, ollama, Java, and Maven are up and working:
 
 ```sh
-$ cd genai-stack
+$ ollama -v
+ollama version is 0.1.31
+$ docker -v
+Docker version 25.0.3, build 4debf41
+$ java -version
+openjdk version "17.0.5" 2022-10-18
+$ mvn -v
+Apache Maven 3.9.6
+```
+
+1. Verify that `compose-ai.yaml` is commented in [compose.yaml](compose.yaml)
+
+```sh
+$ cat compose.yaml
+include:
+  - genai-stack/compose.yaml
+  - alfresco/compose.yaml
+#  - alfresco/compose-ai.yaml
+```
+
+2. Start Docker containers for Alfresco and GenAI Stack
+
+```sh
 $ docker compose up
 ```
 
-2. Start Alfresco
+3. Once Alfresco is up & running, upload a number of documents to a given folder, for instance `/app:company_home/app:shared`. You may use the Legacy UI with default credentials (admin/admin) available in http://localhost:8080/share
 
->> Verify that `alfresco-ai-listener` is not present or is commented in [compose.yaml](alfresco/compose.yaml)
-
-```sh
-$ cd alfresco
-$ docker compose up
-```
-
-3. Upload a number of documents to a given folder, for instance `/app:company_home/app:shared`
-
-4. (OPTIONAL) Compile the Alfresco AI Applier (if required)
+4. Compile the Alfresco AI Applier (if required)
 
 ```sh
 $ cd alfresco-ai/alfresco-ai-applier
 $ mvn clean package
 ```
 
-5. Run the Alfresco AI Applier to summarize the documents
+5. Run the Alfresco AI Applier to summarize the documents in a given folder
 
 ```sh
-$ cd alfresco-ai/alfresco-ai-applier
 $ java -jar target/alfresco-ai-applier-0.8.0.jar \
   --applier.root.folder=/app:company_home/app:shared \
   --applier.action=SUMMARY
@@ -429,7 +439,7 @@ $ java -jar target/alfresco-ai-applier-0.8.0.jar \
 
 >> Once this command has finished, every document in the folder should include a populated `Summary` property (accessible in "view" mode)
 
-6. Run the Alfresco AI Applier to classify the documents
+6. Run the Alfresco AI Applier to classify the documents based on a list of terms in a specific folder
 
 ```sh
 $ cd alfresco-ai/alfresco-ai-applier
@@ -441,9 +451,9 @@ $ java -jar target/alfresco-ai-applier-0.8.0.jar \
 
 >> Once this command has finished, every document in the folder should include a populated `Term` property selected from the Term List (accessible in "view" mode)
 
-7. Upload a number of pictures to a given folder, for instance `/app:company_home/app:shared/cm:pictures`
+7. Upload a number of pictures to an specific folder, for instance `/app:company_home/app:shared/cm:pictures`
 
-8. Run the Alfresco AI Applier to summarize the documents
+8. Run the Alfresco AI Applier to summarize the documents, note that `applier.root.folder` uses this folder already created
 
 ```sh
 $ cd alfresco-ai/alfresco-ai-applier
@@ -457,16 +467,20 @@ $ java -jar target/alfresco-ai-applier-0.8.0.jar \
 
 # Use Case 2: New Content
 
-1. Start GenAI Stack
-
->> Verify Docker and ollama are up & running
+0. Before proceeding, ensure that Docker, ollama, Java, and Maven are up and working:
 
 ```sh
-$ cd genai-stack
-$ docker compose up
+$ ollama -v
+ollama version is 0.1.31
+$ docker -v
+Docker version 25.0.3, build 4debf41
+$ java -version
+openjdk version "17.0.5" 2022-10-18
+$ mvn -v
+Apache Maven 3.9.6
 ```
 
-2. (OPTIONAL) Build `alfresco-ai-listener` Docker Image if required
+1. Build `alfresco-ai-listener` Docker Image if required
 
 ```sh
 $ cd alfresco-ai/alfresco-ai-listener
@@ -474,16 +488,23 @@ $ mvn clean package
 $ docker build . -t alfresco-ai-listener
 ```
 
-3. Start Alfresco
-
->> Verify that `alfresco-ai-listener` is present in [compose.yaml](alfresco/compose.yaml)
+2. Verify that `compose-ai.yaml` is uncommented in [compose.yaml](compose.yaml)
 
 ```sh
-$ cd alfresco
+$ cat compose.yaml
+include:
+  - genai-stack/compose.yaml
+  - alfresco/compose.yaml
+  - alfresco/compose-ai.yaml
+```
+
+3. Start Docker containers for Alfresco and GenAI Stack
+
+```sh
 $ docker compose up
 ```
 
-4. Get a summary for a document
+4. Use Alfresco Legacy UI, available in http://localhost:8080/share, to get a summary for a document
 
 * Apply Summarizable with AI (`genai:summarizable`) aspect to a node
 * Wait until GenAI populates `Summary` property (accesible in "view" mode)
@@ -505,4 +526,6 @@ $ docker compose up
 7. Describe a picture
 
 * Apply Descriptable with AI (`genai:descriptable`) aspect to a picture
-* Wait until GenAI populaes `Description` property (accesible in "view" mode)
+* Wait until GenAI populates `Description` property (accesible in "view" mode)
+
+>> These operations may be automated by creating folder rules that apply required aspects to documents uploaded to an specific folder
