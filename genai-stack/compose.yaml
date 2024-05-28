@@ -58,8 +58,4 @@ services:
     ports:
       - 8506:8506
     volumes:
-      - ./embedding_model:/embedding_model      
-
-networks:
-  default:
-    name: alfresco-genai
+      - ./embedding_model:/embedding_model
