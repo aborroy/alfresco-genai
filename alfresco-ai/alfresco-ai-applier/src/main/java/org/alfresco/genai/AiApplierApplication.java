@@ -90,11 +90,13 @@ public class AiApplierApplication implements CommandLineRunner {
 
         do {
 
+            System.out.println("PATH:\"" + folder + "//*\" AND TYPE:\"cm:content\" AND NOT EXISTS:\"" + action.getUpdateField() + "\"");
+
             ResponseEntity<ResultSetPaging> results = searchApi.search(
                     new SearchRequest()
                             .query(new RequestQuery()
                                     .language(RequestQuery.LanguageEnum.AFTS)
-                                    .query("PATH:\"" + folder + "//*\" AND NOT EXISTS:\"" + action.getUpdateField() + "\""))
+                                    .query("PATH:\"" + folder + "//*\" AND TYPE:\"cm:content\" AND NOT EXISTS:\"" + action.getUpdateField() + "\""))
                             .sort(sortDefinition)
                             .paging(new RequestPagination().maxItems(maxItems).skipCount(0)));
 
